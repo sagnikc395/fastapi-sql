@@ -16,7 +16,7 @@ async def init_db():
         await conn.run_sync(SQLModel.metadata.create_all)
 
 
-async def get_session() -> AsyncSession:
+async def get_session() -> AsyncSession: # type: ignore
     '''
     DI to provide the session object 
     '''
@@ -29,4 +29,3 @@ async def get_session() -> AsyncSession:
     async with async_session() as session:
         yield session 
 
-        
