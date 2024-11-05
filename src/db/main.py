@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from src.config import settings
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import text 
+from sqlmodel import SQLModel,text
+from sqlalchemy.orm import sessionmaker
 
 async_engine = create_async_engine(
     url=settings.POSTGRES_DB,
@@ -9,9 +10,23 @@ async_engine = create_async_engine(
 )
 
 async def init_db():
-    # setup connection to db and connect to our db 
-    async with AsyncSession() as session:
-        stmt = text("SELECT 'hello';")
-        result = await session.exec(stmt)
-        # test db connecton 
-        print(result)
+    #create the db tables 
+    async with async_engine.begin() as conn:
+        from .models import Book 
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+
+async def get_session() -> AsyncSession:
+    '''
+    DI to provide the session object 
+    '''
+    async_session = sessionmaker(
+        bind=async_engine,
+        class_ = AsyncSession,
+        expire_on_commit=False
+    )
+
+    async with async_session() as session:
+        yield session 
+
+        
